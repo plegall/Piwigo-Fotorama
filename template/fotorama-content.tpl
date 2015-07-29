@@ -8,20 +8,39 @@
 {combine_css path="plugins/Fotorama/template/info_button.css"}
 {/if}
 
-<div class="fotorama" data-startindex="{$current_rank}" data-ratio="16/9" data-auto="false"
-  data-width="100%" data-maxheight="100%" data-minheight="200" data-height="{$item_height}"
-  data-shadows="{if $Fotorama.shadows}true{else}false{/if}" data-nav="{$Fotorama.nav}" data-fit="{$Fotorama.fit}"
-  data-allowfullscreen="{$Fotorama.allowfullscreen}" data-autoplay="{if $Fotorama.autoplay}{$Fotorama.period}{else}false{/if}"
-  data-transition="{$Fotorama.transition}" data-stopautoplayontouch="{if $Fotorama.stopautoplayontouch}true{else}false{/if}"
-  data-loop="{if $Fotorama.loop}true{else}false{/if}" data-captions="false" data-thumbheight="{$Fotorama.thumbheight}"
-  data-thumbwidth="{$Fotorama.thumbheight}"{if $Fotorama.clicktransition_crossfade} data-clicktransition="crossfade"{/if}
-  data-keyboard="true">
-</div>
+<div class="fotorama"
+    data-startindex="{$current_rank}"
+    data-ratio="16/9"
+    data-auto="false"
+	data-width="100%"
+	data-maxheight="100%"
+	data-minheight="200"
+	data-height="{$item_height}"
+	data-shadows="{if $Fotorama.shadows}true{else}false{/if}"
+	data-nav="{$Fotorama.nav}"
+    data-fit="{$Fotorama.fit}"
+	data-allowfullscreen="{$Fotorama.allowfullscreen}"
+	data-autoplay="{if $Fotorama.autoplay}{$Fotorama.period}{else}false{/if}"
+	data-transition="{$Fotorama.transition}"
+	data-stopautoplayontouch="{if $Fotorama.stopautoplayontouch}true{else}false{/if}"
+	data-loop="{if $Fotorama.loop}true{else}false{/if}"
+    data-captions="false"
+	data-thumbheight="{$Fotorama.thumbheight}"
+	data-thumbwidth="{$Fotorama.thumbheight}"
+
+	{if $Fotorama.clicktransition_crossfade}
+	data-clicktransition="crossfade"
+	{/if}
+
+	data-keyboard='{literal}{"space": true, "home": true, "end": true, "up": false, "down": false}{/literal}'
+
+></div>
 
 {if isset($U_SLIDESHOW_STOP)}
 <a href="{$U_SLIDESHOW_STOP}" class="fotorama__close-icon"></a>
 {/if}
 <a class="fotorama__info-icon"></a>
+<span class="fotorama__pqv-icon"></span>
 
 {footer_script require='jquery'}
   window.blockFotoramaData = true;
@@ -38,6 +57,11 @@
 
     jQuery('a.fotorama__info-icon').attr('href', fotorama.activeFrame['url']+(fotorama.activeFrame['url'].indexOf('?')==-1 ? '?' : '&')+'slidestop=');
 
+    jQuery('.fotorama__pqv-icon').removeClass('qselect-icon-thumbs-down').removeClass('qselect-icon-thumbs-up');
+    if (typeof fotorama.activeFrame['pqv_validated'] !== 'undefined') {
+      jQuery('.fotorama__pqv-icon').addClass('qselect-icon-thumbs-'+(fotorama.activeFrame['pqv_validated'] ? 'up' : 'down'));
+    }
+
     jQuery('#slideshow .showtitle').text(fotorama.activeFrame['caption']);
 		var idx = fotorama.activeIndex;
 {if isset($view_offset)}
@@ -50,6 +74,7 @@
 
   var fullscreen = false;
   jQuery().ready(function() {
+
     jQuery('.fotorama')
         // Listen to the events
         .on('fotorama:showend',
@@ -120,6 +145,8 @@
           data: [
 {foreach from=$items item=thumbnail}
 {
+image_id:{$thumbnail.id},
+pqv_validated:{if isset($thumbnail.pqv_validated)}{$thumbnail.pqv_validated}{else}undefined{/if},
 caption: "{$thumbnail.TITLE|escape:javascript}",
 full: "{str_replace('&amp;', '&', $thumbnail.derivative_big->get_url())}",
 img: "{str_replace('&amp;', '&', $thumbnail.derivative->get_url())}",
@@ -162,6 +189,10 @@ url: "{$thumbnail.url}"
     jQuery('.fotorama__info-icon').detach().insertAfter('.fotorama__fullscreen-icon');
   });
   {/if}
+
+  jQuery('.fotorama').on('fotorama:ready', function (e, fotorama) {
+    jQuery('.fotorama__pqv-icon').detach().insertAfter('.fotorama__fullscreen-icon');
+  });
   
   {if $Fotorama.autoplay}
   $(document).keypress(function(e) {
@@ -177,4 +208,5 @@ url: "{$thumbnail.url}"
     }
   });
   {/if}
+
 {/footer_script}
